@@ -1,5 +1,6 @@
 #include <SPI.h>
 #include <mcp2515.h>
+#include <Wire.h>
 
 #define PGN_IS_ACKNOWLEDGEMENT 59392
 #define PGN_ISO_REQUEST        55904

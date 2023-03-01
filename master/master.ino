@@ -34,7 +34,7 @@ void setup()
 
     // Setup for the I2C communication between the master and slave.
     Wire.begin(5);
-    Wire.onReceive(send_can_frame);
+    Wire.onReceive(send_to_network);
     
     // Setup for the CAN Module.
     mcp2515.reset();
@@ -64,17 +64,47 @@ void loop()
 
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
-        // PGN handling code goes here.
+        // TODO: Change this to select function based off modeIdx.
         print_pgn(recvMsg);
+
+        /**
+         * After were done altering the CAN frame, we let it through to the network
+         * through the slave.
+         */
+        send_to_slave(recvMsg);
     }
 
     lcd.setCursor(0, 1);
     lcd.print(modeIdx);
 }
 
-void send_can_frame(int bytes)
+void send_to_slave(struct can_frame msg)
 {
+    char slave_frame[500];
+    sprintf(slave_frame, "<%lu>|%u|", msg.can_id, msg.can_dlc);
 
+    for (int i = 0; i < msg.can_dlc; i++)
+    {
+        char slave_data[10];
+        sprintf(slave_data, ";%u;", msg.data[i]);
+        strcat(slave_frame, slave_data);
+    }
+
+    Serial.print("Slave Frame: ");
+    Serial.print(slave_frame);
+    Serial.print("\n");
+
+    // Send frame to slave arduino.
+    Wire.beginTransmission(6);
+    Wire.write(slave_frame);
+    Wire.endTransmission();
+}
+
+void send_to_network(int bytes)
+{
+    // TODO: Create Can frame from I2C string.
+    
+    mcp2515.send(&sendMsg);
 }
     
   
