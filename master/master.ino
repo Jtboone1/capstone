@@ -44,8 +44,14 @@ void setup()
 
 void loop()
 {
+    /**
+     * If the slave has received a CAN frame, this gathers 
+     * that information and reconstructs the CAN frame to send back to
+     * the network.
+     */
     Wire.requestFrom(6, 100);
     char rc = ' ';
+    int data_idx = 0;
     while (Wire.available() > 0 && rc != ']')
     {
         char rc = Wire.read();
@@ -65,10 +71,40 @@ void loop()
                 idx++;
             }
 
+            
             can_id[idx] = '\0';
+            
+            // TODO: Actually convert this to can_dlc from char array.
+            Serial.print("SEND ID: ");
+            Serial.print(can_id);
+            Serial.print("\n");
+        }
+
+        if (rc == '/')
+        {
+            char can_dlc[50];
+            int idx = 0;
+            while (Wire.available() > 0 rc != '\')
+            {
+                rc = Wire.read();
+
+                if (rc != '\')
+                {
+                    can_dlc[idx] = rc;
+                }
+                idx++;
+            }
+
+            can_dlc[idx] = '\0';
+
+            // TODO: Actually convert this to can_dlc from char array.
+            Serial.print("SEND DLC: ");
+            Serial.print(can_dlc);
+            Serial.print("\n");
         }
     }
-    
+
+    // This deals with switching attack modes on button press.
     buttonState = digitalRead(buttonPin);
     if (buttonState == HIGH && debounced == false)
     {
@@ -85,7 +121,11 @@ void loop()
     {
         debounced = false;
     }
+    
+    lcd.setCursor(0, 1);
+    lcd.print(modeIdx);
 
+    // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
         // TODO: Change this to select function based off modeIdx.
@@ -98,19 +138,17 @@ void loop()
         send_to_slave(recvMsg);
     }
 
-    lcd.setCursor(0, 1);
-    lcd.print(modeIdx);
 }
 
 void send_to_slave(struct can_frame msg)
 {
     char slave_frame[500];
-    sprintf(slave_frame, "<%lu>|%u|", msg.can_id, msg.can_dlc);
+    sprintf(slave_frame, "<%lu>/%u\", msg.can_id, msg.can_dlc);
 
     for (int i = 0; i < msg.can_dlc; i++)
     {
         char slave_data[10];
-        sprintf(slave_data, ";%u;", msg.data[i]);
+        sprintf(slave_data, ";%u:", msg.data[i]);
         strcat(slave_frame, slave_data);
     }
 
