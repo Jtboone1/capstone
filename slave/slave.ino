@@ -76,7 +76,7 @@ void create_frame()
     data_idx = 0;
 
     // Send the CAN frame back to the network.
-    mcp2515.send(%sendMsg);
+    mcp2515.sendMessage(&sendMsg);
 }
 
 void receive_event(int bytes)
