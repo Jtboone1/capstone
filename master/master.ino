@@ -34,7 +34,6 @@ void setup()
 
     // Setup for the I2C communication between the master and slave.
     Wire.begin();
-    Wire.onReceive(send_to_network);
     
     // Setup for the CAN Module.
     mcp2515.reset();
@@ -44,66 +43,6 @@ void setup()
 
 void loop()
 {
-    /**
-     * If the slave has received a CAN frame, this gathers 
-     * that information and reconstructs the CAN frame to send back to
-     * the network.
-     */
-    Wire.requestFrom(6, 100);
-    char rc = ' ';
-    int data_idx = 0;
-    while (Wire.available() > 0 && rc != ']')
-    {
-        char rc = Wire.read();
-        
-        if (rc == '<')
-        {
-            char can_id[50];
-            int idx = 0;
-            while (Wire.available() > 0 rc != '>')
-            {
-                rc = Wire.read();
-
-                if (rc != '>')
-                {
-                    can_id[idx] = rc;
-                }
-                idx++;
-            }
-
-            
-            can_id[idx] = '\0';
-            
-            // TODO: Actually convert this to can_dlc from char array.
-            Serial.print("SEND ID: ");
-            Serial.print(can_id);
-            Serial.print("\n");
-        }
-
-        if (rc == '/')
-        {
-            char can_dlc[50];
-            int idx = 0;
-            while (Wire.available() > 0 rc != '\')
-            {
-                rc = Wire.read();
-
-                if (rc != '\')
-                {
-                    can_dlc[idx] = rc;
-                }
-                idx++;
-            }
-
-            can_dlc[idx] = '\0';
-
-            // TODO: Actually convert this to can_dlc from char array.
-            Serial.print("SEND DLC: ");
-            Serial.print(can_dlc);
-            Serial.print("\n");
-        }
-    }
-
     // This deals with switching attack modes on button press.
     buttonState = digitalRead(buttonPin);
     if (buttonState == HIGH && debounced == false)
@@ -138,38 +77,42 @@ void loop()
         send_to_slave(recvMsg);
     }
 
+    delay(100);
+
 }
 
 void send_to_slave(struct can_frame msg)
 {
-    char slave_frame[500];
-    sprintf(slave_frame, "<%lu>/%u\", msg.can_id, msg.can_dlc);
+    char slave_frame_id[100];
+    sprintf(slave_frame_id, "%lu ", msg.can_id);
 
+    char slave_frame_data[100] = "";
     for (int i = 0; i < msg.can_dlc; i++)
     {
-        char slave_data[10];
-        sprintf(slave_data, ";%u:", msg.data[i]);
-        strcat(slave_frame, slave_data);
+        char data[20];
+        sprintf(data, "%u ", msg.data[i]);
+        strcat(slave_frame_data, data);
     }
 
-    // The ']' character will symbolize the end of the frame.
-    strcat(slave_frame, ']');
-
-    Serial.print("Slave Frame: ");
-    Serial.print(slave_frame);
+    Serial.print("Slave Frame ID: ");
+    Serial.print(slave_frame_id);
     Serial.print("\n");
+
+    Serial.print("Slave Frame Data: ");
+    Serial.print(slave_frame_data);
+    Serial.print("\n\n");
 
     // Send frame to slave arduino.
     Wire.beginTransmission(6);
-    Wire.write(slave_frame);
+    Wire.write(slave_frame_id);
+    Wire.endTransmission();
+
+    Wire.beginTransmission(6);
+    Wire.write(slave_frame_data);
+    Wire.endTransmission();
+
+    Wire.beginTransmission(6);
+    Wire.write("]");
     Wire.endTransmission();
 }
-
-void send_to_network(int bytes)
-{
-    // TODO: Create Can frame from I2C string.
-    
-    mcp2515.send(&sendMsg);
-}
-    
   

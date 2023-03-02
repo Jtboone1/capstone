@@ -22,7 +22,7 @@ void print_pgn(struct can_frame recvMsg)
     Serial.print("DATA: ");
     for (int i = 0; i < recvMsg.can_dlc; i++)
     {
-        Serial.print(recvMsg.data[i], HEX);
+        Serial.print(recvMsg.data[i]);
         Serial.print(" ");
     }
     Serial.println("\n");
