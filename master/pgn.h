@@ -1,6 +1,3 @@
-/*
- * Functions for dealing with the various PGNs.
-*/
 #include <SPI.h>
 #include <mcp2515.h>
 
@@ -21,6 +18,10 @@
 #define PGN_GNSS_DOP           129539
 #define PGN_GNSS_SATS_VIEW     129539
 
-void pgn_processor(int PGN, can_frame recvMsg);
+/*
+ * Functions for dealing with the various PGNs.
+*/
+
+void pgn_processor(struct can_frame recvMsg);
 
 void print_pgn(struct can_frame recvMsg);
