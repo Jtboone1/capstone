@@ -33,7 +33,7 @@ void setup()
     lcd.print("Mode: ");
 
     // Setup for the I2C communication between the master and slave.
-    Wire.begin(5);
+    Wire.begin();
     Wire.onReceive(send_to_network);
     
     // Setup for the CAN Module.
@@ -44,6 +44,30 @@ void setup()
 
 void loop()
 {
+    Wire.requestFrom(6, 100);
+    char rc = ' ';
+    while (Wire.available() > 0 && rc != ']')
+    {
+        char rc = Wire.read();
+        
+        if (rc == '<')
+        {
+            char can_id[50];
+            int idx = 0;
+            while (Wire.available() > 0 rc != '>')
+            {
+                rc = Wire.read();
+
+                if (rc != '>')
+                {
+                    can_id[idx] = rc;
+                }
+                idx++;
+            }
+
+            can_id[idx] = '\0';
+        }
+    }
     
     buttonState = digitalRead(buttonPin);
     if (buttonState == HIGH && debounced == false)
@@ -89,6 +113,9 @@ void send_to_slave(struct can_frame msg)
         sprintf(slave_data, ";%u;", msg.data[i]);
         strcat(slave_frame, slave_data);
     }
+
+    // The ']' character will symbolize the end of the frame.
+    strcat(slave_frame, ']');
 
     Serial.print("Slave Frame: ");
     Serial.print(slave_frame);

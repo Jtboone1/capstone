@@ -23,6 +23,4 @@
  * Functions for dealing with the various PGNs.
 */
 
-void pgn_processor(struct can_frame recvMsg);
-
 void print_pgn(struct can_frame recvMsg);
