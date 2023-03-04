@@ -68,7 +68,7 @@ void loop()
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
         // TODO: Change this to select function based off modeIdx.
-        print_pgn(recvMsg);
+        pos_alter(&recvMsg);
 
         /**
          * After were done altering the CAN frame, we let it through to the network
@@ -93,14 +93,6 @@ void send_to_slave(struct can_frame msg)
         sprintf(data, "%u ", msg.data[i]);
         strcat(slave_frame_data, data);
     }
-
-    Serial.print("Slave Frame ID: ");
-    Serial.print(slave_frame_id);
-    Serial.print("\n");
-
-    Serial.print("Slave Frame Data: ");
-    Serial.print(slave_frame_data);
-    Serial.print("\n\n");
 
     // Send frame to slave arduino.
     Wire.beginTransmission(6);

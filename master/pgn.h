@@ -1,6 +1,7 @@
 #include <SPI.h>
-#include <mcp2515.h>
 #include <Wire.h>
+#include <mcp2515.h>
+#include <string.h>
 
 #define PGN_IS_ACKNOWLEDGEMENT 59392
 #define PGN_ISO_REQUEST        55904
@@ -19,8 +20,22 @@
 #define PGN_GNSS_DOP           129539
 #define PGN_GNSS_SATS_VIEW     129539
 
-/*
+/**
  * Functions for dealing with the various PGNs.
-*/
+ */
 
-void print_pgn(struct can_frame recvMsg);
+ // Prints PGN to the Arduino's Serial output.
+void print_pgn(struct can_frame* recvMsg);
+
+// Alters the latitude and longitude coordinates in the network.
+void pos_alter(struct can_frame* recvMsg);
+
+/**
+ *  Helper functions for altering the data in each frame.
+ */
+
+// Given a frame's data, get the latitude and longitude as floating points.
+void getLatLong(uint8_t data[], float* coord);
+
+// Convert a coordinate structure into a N2K data array.
+void getData(float* lat_long, uint8_t* data);

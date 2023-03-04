@@ -69,7 +69,7 @@ void create_frame()
         data_str[0] = '\0';        
         data_idx++;
     }
-    Serial.print('\n');
+    Serial.print("\nSENDING!\n");
 
     // The CAN data count is always 8.
     sendMsg.can_dlc = 8;
