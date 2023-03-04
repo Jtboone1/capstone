@@ -121,6 +121,12 @@ void getLatLong(uint8_t data[], float* coord)
     int32_t signed_lat = static_cast<int32_t>(latitude_n);
     int32_t signed_long = static_cast<int32_t>(longitude_n);
 
+    /*
+     * The standard for latitude and longitude PGN's is that they take 6 points
+     * past the '.', So say we read 49123456, we need the float to become
+     * 49.123456. So we divide by 10^6 and add 6 trailing zeros
+     * so we don't lose data.
+     */
     float final_lat = signed_lat / 1000000.000000;
     float final_long = signed_long / 1000000.000000;
 
