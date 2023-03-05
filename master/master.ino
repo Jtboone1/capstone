@@ -13,9 +13,9 @@ const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 
 // Button Setup
 const int buttonPin = 3;
-const int modeMax = 5;
-int buttonState = 0;
+const int modeMax = 1;
 int modeIdx = 0;
+int buttonState = 0;
 bool debounced = false;
 
 MCP2515 mcp2515(10);
@@ -67,8 +67,15 @@ void loop()
     // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
-        // TODO: Change this to select function based off modeIdx.
-        pgnPosAlter(&recvMsg);
+        switch(modeIdx)
+        {
+            case 1:
+                pgnPosAlter(&recvMsg);
+                break;
+
+            default:
+                pgnPrint(&recvMsg);
+        }
 
         /**
          * After were done altering the CAN frame, we let it through to the network
@@ -76,9 +83,6 @@ void loop()
          */
         sendToSlave(recvMsg);
     }
-
-    delay(100);
-
 }
 
 void sendToSlave(struct can_frame msg)
