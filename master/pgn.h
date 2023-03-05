@@ -25,10 +25,10 @@
  */
 
  // Prints PGN to the Arduino's Serial output.
-void print_pgn(struct can_frame* recvMsg);
+void pgnPrint(struct can_frame* recvMsg);
 
 // Alters the latitude and longitude coordinates in the network.
-void pos_alter(struct can_frame* recvMsg);
+void pgnPosAlter(struct can_frame* recvMsg);
 
 /**
  *  Helper functions for altering the data in each frame.

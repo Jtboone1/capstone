@@ -1,6 +1,6 @@
 #include "pgn.h"
 
-void print_pgn(struct can_frame* recvMsg)
+void pgnPrint(struct can_frame* recvMsg)
 {
     unsigned long PGN = recvMsg->can_id;
 
@@ -31,7 +31,7 @@ void print_pgn(struct can_frame* recvMsg)
     
 }
 
-void pos_alter(struct can_frame* recvMsg)
+void pgnPosAlter(struct can_frame* recvMsg)
 {
     unsigned long PGN = recvMsg->can_id;
 
@@ -51,7 +51,7 @@ void pos_alter(struct can_frame* recvMsg)
          
         getData(coords, recvMsg->data);
         
-        print_pgn(recvMsg);
+        pgnPrint(recvMsg);
     }
 }
 

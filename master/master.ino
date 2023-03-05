@@ -68,20 +68,20 @@ void loop()
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
         // TODO: Change this to select function based off modeIdx.
-        pos_alter(&recvMsg);
+        pgnPosAlter(&recvMsg);
 
         /**
          * After were done altering the CAN frame, we let it through to the network
          * through the slave.
          */
-        send_to_slave(recvMsg);
+        sendToSlave(recvMsg);
     }
 
     delay(100);
 
 }
 
-void send_to_slave(struct can_frame msg)
+void sendToSlave(struct can_frame msg)
 {
     char slave_frame_id[100];
     sprintf(slave_frame_id, "%lu ", msg.can_id);
