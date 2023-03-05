@@ -92,6 +92,7 @@ void getData(float* lat_long, uint8_t* data)
 
         char first_lat = hex_lat[offset * 2];
         char second_lat = hex_lat[offset * 2 + 1];
+        
         char first_long = hex_long[offset * 2];
         char second_long = hex_long[offset * 2 + 1];
 
