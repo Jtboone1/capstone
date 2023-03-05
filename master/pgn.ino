@@ -1,5 +1,8 @@
 #include "pgn.h"
 
+float custom_lat = 0.000000;
+float custom_long = 0.000000;
+
 void pgnPrint(struct can_frame* recvMsg)
 {
     unsigned long PGN = recvMsg->can_id;
@@ -13,12 +16,8 @@ void pgnPrint(struct can_frame* recvMsg)
 
     Serial.print("PGN: ");
     Serial.print(PGN);
-    Serial.print(" ");
+    Serial.print(" | 0x");
     Serial.print(PGN, HEX);
-    Serial.print("\n");
-
-    Serial.print("DATA COUNT: ");
-    Serial.print(recvMsg->can_dlc);
     Serial.print("\n");
 
     Serial.print("DATA: ");
@@ -38,19 +37,58 @@ void pgnPosAlter(struct can_frame* recvMsg)
     PGN &= ~(0xFC000000);
     PGN /= 256;
 
-    if (PGN == PGN_POSITION_RAPID || PGN == PGN_GNSS_POS)
+    if (PGN == PGN_POSITION_RAPID)
     {   
         float coords[2];
+
+        /*
+         * We can alter the latitude and longitude relative to the REAL
+         * latitude and longitude by getting their values from the can  
+         * frame data into two floating points.
+         */
         getLatLong(recvMsg->data, &(coords[0]));
 
         /* 
-         *  TODO: We now have the latitude and longitude coordinates
+         *  We now have the latitude and longitude coordinates
          *  array. We can then alter it however we see fit, and then
          *  get the data array back using getData.
+         *  
+         *  For this function, we'll go to Greenland as an example.
          */
-         
+
+        coords[0] = 71.706900;
+        coords[1] = -42.604300;
         getData(coords, recvMsg->data);
         
+        pgnPrint(recvMsg);
+    }
+}
+
+void pgnPosZigzag(struct can_frame* recvMsg)
+{
+    unsigned long PGN = recvMsg->can_id;
+
+    PGN &= ~(0xFC000000);
+    PGN /= 256;
+
+    if (PGN == PGN_POSITION_RAPID)
+    {   
+        custom_lat += 0.100000;
+        custom_long += 0.100000;
+
+        if (custom_lat >= 80)
+        {
+            custom_lat = -80;
+        }
+
+        if (custom_long >= 170)
+        {
+            custom_lat = -170;
+        }
+        
+        float coords[2] = {custom_lat, custom_long};
+         
+        getData(coords, recvMsg->data);
         pgnPrint(recvMsg);
     }
 }

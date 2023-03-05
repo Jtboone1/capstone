@@ -20,6 +20,10 @@
 #define PGN_GNSS_DOP           129539
 #define PGN_GNSS_SATS_VIEW     129539
 
+// Custom latitude and longitude for attacks.
+extern float custom_lat;
+extern float custom_long;
+
 /**
  * Functions for dealing with the various PGNs.
  */
@@ -29,6 +33,9 @@ void pgnPrint(struct can_frame* recvMsg);
 
 // Alters the latitude and longitude coordinates in the network.
 void pgnPosAlter(struct can_frame* recvMsg);
+
+// Alters the latitude and longitude to go in a zig-zag pattern.
+void pgnPosZigzag(struct can_frame* recvMsg);
 
 /**
  *  Helper functions for altering the data in each frame.

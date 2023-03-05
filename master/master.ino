@@ -13,7 +13,7 @@ const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 
 // Button Setup
 const int buttonPin = 3;
-const int modeMax = 1;
+const int modeMax = 2;
 int modeIdx = 0;
 int buttonState = 0;
 bool debounced = false;
@@ -71,6 +71,10 @@ void loop()
         {
             case 1:
                 pgnPosAlter(&recvMsg);
+                break;
+
+            case 2:
+                pgnPosZigzag(&recvMsg);
                 break;
 
             default:
