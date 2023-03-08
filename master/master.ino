@@ -13,7 +13,7 @@ const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 
 // Button Setup
 const int buttonPin = 3;
-const int modeMax = 2;
+const int modeMax = 7;
 int modeIdx = 0;
 int buttonState = 0;
 bool debounced = false;
@@ -62,7 +62,6 @@ void loop()
     }
     
     lcd.setCursor(0, 1);
-    lcd.print(modeIdx);
 
     // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
@@ -70,15 +69,38 @@ void loop()
         switch(modeIdx)
         {
             case 1:
-                pgnPosAlter(&recvMsg);
+                pgnGetPos(&recvMsg);
+                lcd.print("Getting Position");
                 break;
 
             case 2:
+                pgnPosAlterNorth(&recvMsg);
+                lcd.print("Moving North");
+                break;
+
+            case 3:
+                pgnPosAlterSouth(&recvMsg);
+                lcd.print("Moving South");
+                break;
+
+            case 4:
+                pgnPosAlterEast(&recvMsg);
+                lcd.print("Moving East");
+                break;
+
+            case 5:
+                pgnPosAlterWest(&recvMsg);
+                lcd.print("Moving West");
+                break;
+
+            case 6:
                 pgnPosZigzag(&recvMsg);
+                lcd.print("Zig Zagging");
                 break;
 
             default:
                 pgnPrint(&recvMsg);
+                lcd.print("Printing Frames");
         }
 
         /**

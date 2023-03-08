@@ -21,8 +21,8 @@
 #define PGN_GNSS_SATS_VIEW     129539
 
 // Custom latitude and longitude for attacks.
-extern float custom_lat;
-extern float custom_long;
+extern float current_lat;
+extern float current_long;
 
 /**
  * Functions for dealing with the various PGNs.
@@ -31,10 +31,18 @@ extern float custom_long;
  // Prints PGN to the Arduino's Serial output.
 void pgnPrint(struct can_frame* recvMsg);
 
-// Alters the latitude and longitude coordinates in the network.
-void pgnPosAlter(struct can_frame* recvMsg);
+// Stores the real GPS latitude and longitude into two variables (current_lat, current_long).
+void pgnGetPos(struct can_frame* recvMsg);
 
-// Alters the latitude and longitude to go in a zig-zag pattern.
+// Alters current_lat and current_long coordinates in the direction specified by dir (n,e,s,w).
+void pgnPosAlter(struct can_frame* recvMsg, char dir);
+
+void pgnPosAlterNorth(struct can_frame* recvMsg);
+void pgnPosAlterSouth(struct can_frame* recvMsg);
+void pgnPosAlterEast(struct can_frame* recvMsg);
+void pgnPosAlterWest(struct can_frame* recvMsg);
+
+// Alters the current_lat and current_long to go in a zig-zag pattern.
 void pgnPosZigzag(struct can_frame* recvMsg);
 
 /**

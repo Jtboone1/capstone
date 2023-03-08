@@ -1,7 +1,7 @@
 #include "pgn.h"
 
-float custom_lat = 0.000000;
-float custom_long = 0.000000;
+float current_lat = 0.000000;
+float current_long = 0.000000;
 
 void pgnPrint(struct can_frame* recvMsg)
 {
@@ -27,87 +27,124 @@ void pgnPrint(struct can_frame* recvMsg)
         Serial.print(" ");
     }
     Serial.println("\n");
-    
 }
 
-void pgnPosAlter(struct can_frame* recvMsg)
-{
-    unsigned long PGN = recvMsg->can_id;
-
-    PGN &= ~(0xFC000000);
-    PGN /= 256;
-
-    if (PGN == PGN_POSITION_RAPID)
+void pgnGetPos(struct can_frame* recvMsg)
+{    
+    if (isPositionPgn(recvMsg))
     {   
-        float coords[2];
-
         /*
          * We can alter the latitude and longitude relative to the REAL
          * latitude and longitude by getting their values from the can  
          * frame data into two floating points.
          */
+        float coords[2];
         getLatLong(recvMsg->data, &(coords[0]));
+        current_lat = coords[0];
+        current_long = coords[1];
+    }
+}
+
+void pgnPosAlterNorth(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'n');
+}
+
+void pgnPosAlterSouth(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 's');
+}
+
+void pgnPosAlterEast(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'e');
+}
+
+void pgnPosAlterWest(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'w');
+}
+
+void pgnPosAlter(struct can_frame* recvMsg, char dir)
+{
+    if (isPositionPgn(recvMsg))
+    {   
+        float coords[2] = {current_lat, current_long};
 
         /* 
          *  We now have the latitude and longitude coordinates
          *  array. We can then alter it however we see fit, and then
          *  get the data array back using getData.
          *  
-         *  For this function, we'll go to Greenland as an example.
+         *  For this function, we will either move N,E,S,W depending on 
+         *  the argument 'dir'.
          */
 
-        coords[0] = 71.706900;
-        coords[1] = -42.604300;
-        getData(coords, recvMsg->data);
+        switch (dir)
+        {
+            case 'n':
+                coords[0] += .100000;
+                break;
+            case 's':
+                coords[0] -= .100000;
+                break;
+            case 'e':
+                coords[1] += .100000;
+                break;
+            default:
+                coords[1] -= .100000;
+        }   
         
+        getData(coords, recvMsg->data);
         pgnPrint(recvMsg);
     }
 }
 
 void pgnPosZigzag(struct can_frame* recvMsg)
 {
-    unsigned long PGN = recvMsg->can_id;
-
-    PGN &= ~(0xFC000000);
-    PGN /= 256;
-
-    if (PGN == PGN_POSITION_RAPID)
+    if (isPositionPgn(recvMsg))
     {   
-        custom_lat += 0.100000;
-        custom_long += 0.100000;
+        current_lat += 0.100000;
+        current_long += 0.100000;
 
-        if (custom_lat >= 80)
+        if (current_lat >= 89)
         {
-            custom_lat = -80;
+            current_lat = -89;
         }
 
-        if (custom_long >= 170)
+        if (current_long >= 179)
         {
-            custom_lat = -170;
+            current_lat = -179;
         }
         
-        float coords[2] = {custom_lat, custom_long};
+        float coords[2] = {current_lat, current_long};
          
         getData(coords, recvMsg->data);
         pgnPrint(recvMsg);
     }
 }
 
+bool isPositionPgn(struct can_frame* recvMsg)
+{
+    unsigned long PGN = recvMsg->can_id;
+
+    PGN &= ~(0xFC000000);
+    PGN /= 256;
+
+    return PGN == PGN_POSITION_RAPID;
+}
+
 void getData(float* lat_long, uint8_t* data)
 {
-    int32_t latitude = *(lat_long) * 1000000;
-    int32_t longitude = *(lat_long + 1) * 1000000;
-
-    // Inverse 2's compliment.
-    uint32_t unsigned_lat = static_cast<int32_t>(latitude);
-    uint32_t unsigned_long = static_cast<int32_t>(longitude);
+    int32_t latitude = *(lat_long) * 10000000;
+    int32_t longitude = *(lat_long + 1) * 10000000;
 
     char hex_lat[16];
     char hex_long[16];
 
-    sprintf(hex_lat, "%X", unsigned_lat);
-    sprintf(hex_long, "%X", unsigned_long);
-
+    sprintf(hex_lat, "%08lX", latitude);
+    sprintf(hex_long, "%08lX", longitude);
+    
     // Padding with zeros makes indexing the data array easier later on.
     while (strlen(hex_lat) < 8)
     {
@@ -153,21 +190,15 @@ void getLatLong(uint8_t data[], float* coord)
     sprintf(latitude, "%X%X%X%X", data[3], data[2], data[1], data[0]);
     sprintf(longitude, "%X%X%X%X", data[7], data[6], data[5], data[4]);
 
-    uint32_t latitude_n = strtol(latitude, nullptr, 16);
-    uint32_t longitude_n = strtol(longitude, nullptr, 16);
+    uint32_t latitude_n = strtoul(latitude, nullptr, 16);
+    uint32_t longitude_n = strtoul(longitude, nullptr, 16);
 
     // Take 2's compliment.
     int32_t signed_lat = static_cast<int32_t>(latitude_n);
     int32_t signed_long = static_cast<int32_t>(longitude_n);
-
-    /*
-     * The standard for latitude and longitude PGN's is that they take 6 points
-     * past the '.', So say we read 49123456, we need the float to become
-     * 49.123456. So we divide by 10^6 and add 6 trailing zeros
-     * so we don't lose data.
-     */
-    float final_lat = signed_lat / 1000000.000000;
-    float final_long = signed_long / 1000000.000000;
+    
+    float final_lat = signed_lat / 10000000.000000;
+    float final_long = signed_long / 10000000.000000;
 
     *(coord) = final_lat;
     *(coord + 1) = final_long;
