@@ -12,11 +12,20 @@ struct can_frame sendMsg;
 const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 
 // Button Setup
-const int buttonPin = 3;
 const int modeMax = 7;
 int modeIdx = 0;
-int buttonState = 0;
-bool debounced = false;
+int modeSelected = 0;
+int buttonEnterState = 0;
+int buttonLeftState = 0;
+int buttonRightState = 0;
+const int buttonEnterPin = 3;
+const int buttonLeftPin = A0;
+const int buttonRightPin = A1;
+const int selectedLed = A2;
+const int nonSelectedLed = A3;
+bool debouncedEnter = false;
+bool debouncedLeft = false;
+bool debouncedRight = false;
 
 MCP2515 mcp2515(10);
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -25,8 +34,12 @@ void setup()
 {
     Serial.begin(115200);
 
-    // Setup for the button.
-    pinMode(buttonPin, INPUT);
+    // Setup for the buttons.
+    pinMode(buttonEnterPin, INPUT);
+    pinMode(buttonLeftPin, INPUT);
+    pinMode(buttonRightPin, INPUT);
+    pinMode(selectedLed, OUTPUT);
+    pinMode(nonSelectedLed, OUTPUT);
 
     // Setup for the LCD screen.
     lcd.begin(16, 2);
@@ -43,63 +56,86 @@ void setup()
 
 void loop()
 {
-    // This deals with switching attack modes on button press.
-    buttonState = digitalRead(buttonPin);
-    if (buttonState == HIGH && debounced == false)
-    {
-        debounced = true;
-        modeIdx++;
+    buttonCheck(buttonEnterPin, &debouncedEnter, &buttonEnterState);
+    buttonCheck(buttonLeftPin, &debouncedLeft, &buttonLeftState);
+    buttonCheck(buttonRightPin, &debouncedRight, &buttonRightState);
 
-        if (modeIdx > modeMax)
-        {
-            modeIdx = 0;
-        }
-    }
-
-    if (buttonState == LOW && debounced == true)
+    if (modeIdx == modeSelected)
     {
-        debounced = false;
+        digitalWrite(selectedLed, HIGH);
+        digitalWrite(nonSelectedLed, LOW);
     }
-    
-    lcd.setCursor(0, 1);
+    else
+    {
+        digitalWrite(selectedLed, LOW);
+        digitalWrite(nonSelectedLed, HIGH);
+    }
 
     // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
-        switch(modeIdx)
+        switch(modeSelected)
         {
             case 1:
                 pgnGetPos(&recvMsg);
-                lcd.print("Getting Position");
                 break;
 
             case 2:
                 pgnPosAlterNorth(&recvMsg);
-                lcd.print("Moving North");
                 break;
 
             case 3:
                 pgnPosAlterSouth(&recvMsg);
-                lcd.print("Moving South");
                 break;
 
             case 4:
                 pgnPosAlterEast(&recvMsg);
-                lcd.print("Moving East");
                 break;
 
             case 5:
                 pgnPosAlterWest(&recvMsg);
-                lcd.print("Moving West");
                 break;
 
             case 6:
                 pgnPosZigzag(&recvMsg);
-                lcd.print("Zig Zagging");
                 break;
 
             default:
                 pgnPrint(&recvMsg);
+        }
+
+        lcd.clear();
+        lcd.setCursor(0, 0);
+        lcd.print("Mode: ");
+        lcd.setCursor(0, 1);
+
+        switch (modeIdx)
+        {
+            case 1:
+                lcd.print("Getting Position");
+                break;
+
+            case 2:
+                lcd.print("Moving North");
+                break;
+
+            case 3:
+                lcd.print("Moving South");
+                break;
+
+            case 4:
+                lcd.print("Moving East");
+                break;
+
+            case 5:
+                lcd.print("Moving West");
+                break;
+
+            case 6:
+                lcd.print("Zig Zagging");
+                break;
+
+            default:
                 lcd.print("Printing Frames");
         }
 
@@ -108,6 +144,45 @@ void loop()
          * through the slave.
          */
         sendToSlave(recvMsg);
+    }
+}
+
+void buttonCheck(int buttonPin, bool* debounced, int* buttonState)
+{
+    // This deals with switching attack modes on button press.
+    *buttonState = digitalRead(buttonPin);
+
+    if (buttonPin == buttonEnterPin && *buttonState == HIGH)
+    {
+        modeSelected = modeIdx;
+        return;
+    }
+    
+    if (*buttonState == HIGH && *debounced == false)
+    {
+        *debounced = true;
+
+        if (buttonPin == buttonRightPin)
+        {
+            modeIdx++;
+            if (modeIdx > modeMax)
+            {
+               modeIdx = 0;
+            }
+        }
+        else
+        {
+            modeIdx--;
+            if (modeIdx < 0)
+            {
+               modeIdx = modeMax;
+            }
+        }
+    }
+
+    if (*buttonState == LOW && *debounced == true)
+    {
+        *debounced = false;
     }
 }
 

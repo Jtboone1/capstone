@@ -42,6 +42,7 @@ void pgnGetPos(struct can_frame* recvMsg)
         getLatLong(recvMsg->data, &(coords[0]));
         current_lat = coords[0];
         current_long = coords[1];
+        pgnPrint(recvMsg);
     }
 }
 
@@ -68,9 +69,7 @@ void pgnPosAlterWest(struct can_frame* recvMsg)
 void pgnPosAlter(struct can_frame* recvMsg, char dir)
 {
     if (isPositionPgn(recvMsg))
-    {   
-        float coords[2] = {current_lat, current_long};
-
+    {           
         /* 
          *  We now have the latitude and longitude coordinates
          *  array. We can then alter it however we see fit, and then
@@ -80,21 +79,23 @@ void pgnPosAlter(struct can_frame* recvMsg, char dir)
          *  the argument 'dir'.
          */
 
+
         switch (dir)
         {
             case 'n':
-                coords[0] += .100000;
+                current_lat += .100000;
                 break;
             case 's':
-                coords[0] -= .100000;
+                current_lat -= .100000;
                 break;
             case 'e':
-                coords[1] += .100000;
+                current_long += .100000;
                 break;
             default:
-                coords[1] -= .100000;
+                current_long -= .100000;
         }   
         
+        float coords[] = {current_lat, current_long};
         getData(coords, recvMsg->data);
         pgnPrint(recvMsg);
     }
