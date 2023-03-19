@@ -3,16 +3,6 @@
 float current_lat = 0.000000;
 float current_long = 0.000000;
 
-void PGN_Attack::pgnAttack(struct can_frame* recvMsg)
-{
-    return;
-}
-
-String PGN_AttackdisplayName() 
-{ 
-    return "Nothing";
-}
-
 void PGN_Print_Atk::pgnAttack(struct can_frame* recvMsg)
 {
     pgnPrint(recvMsg);

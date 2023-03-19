@@ -36,7 +36,7 @@ PGN_West_Atk        west_a;
 PGN_Zig_Zag_Atk     zig_zag_a;
 
 // Stores them in an array.
-PGN_Attack* attacks[7] = {&print_a, &aquire_a, &north_a, &east_a, &south_a, &west_a, &zig_zag_};
+PGN_Attack* attacks[7] = {&print_a, &aquire_a, &north_a, &east_a, &south_a, &west_a, &zig_zag_a};
 
 MCP2515 mcp2515(10);
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
@@ -62,8 +62,6 @@ void setup()
     mcp2515.reset();
     mcp2515.setBitrate(CAN_250KBPS, MCP_8MHZ);
     mcp2515.setNormalMode();
-
-
 }
 
 void loop()

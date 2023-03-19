@@ -27,11 +27,12 @@
 extern float current_lat;
 extern float current_long;
 
+// Attack interface. Derived classes will implement the details of their attacks.
 class PGN_Attack
 {
     public:
-        virtual void pgnAttack(struct can_frame* recvMsg);
-        virtual String displayName();
+        virtual void pgnAttack(struct can_frame* recvMsg) = 0;
+        virtual String displayName() = 0;
 };
 
 class PGN_Print_Atk : public PGN_Attack
