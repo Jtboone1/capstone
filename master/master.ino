@@ -85,7 +85,7 @@ void loop()
     lcd.setCursor(0, 0);
     lcd.print("Mode: ");
     lcd.setCursor(0, 1);
-    lcd.print(attacks[modeSelected]->displayName());
+    lcd.print(attacks[modeIdx]->displayName());
 
     // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
