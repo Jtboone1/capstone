@@ -2,7 +2,6 @@
 #include <Wire.h>
 #include <LiquidCrystal.h>
 #include <mcp2515.h>
-
 #include "pgn.h"
 
 struct can_frame recvMsg;
@@ -27,6 +26,18 @@ bool debouncedEnter = false;
 bool debouncedLeft = false;
 bool debouncedRight = false;
 
+// Instantiates attack classes.
+PGN_Print_Atk       print_a;
+PGN_Aquire_Pos_Atk  aquire_a;
+PGN_North_Atk       north_a;
+PGN_East_Atk        east_a;
+PGN_South_Atk       south_a;
+PGN_West_Atk        west_a;
+PGN_Zig_Zag_Atk     zig_zag_a;
+
+// Stores them in an array.
+PGN_Attack* attacks[7] = {&print_a, &aquire_a, &north_a, &east_a, &south_a, &west_a, &zig_zag_};
+
 MCP2515 mcp2515(10);
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);
   
@@ -43,7 +54,6 @@ void setup()
 
     // Setup for the LCD screen.
     lcd.begin(16, 2);
-    lcd.print("Mode: ");
 
     // Setup for the I2C communication between the master and slave.
     Wire.begin();
@@ -52,6 +62,8 @@ void setup()
     mcp2515.reset();
     mcp2515.setBitrate(CAN_250KBPS, MCP_8MHZ);
     mcp2515.setNormalMode();
+
+
 }
 
 void loop()
@@ -71,74 +83,16 @@ void loop()
         digitalWrite(nonSelectedLed, HIGH);
     }
 
+    lcd.clear();
+    lcd.setCursor(0, 0);
+    lcd.print("Mode: ");
+    lcd.setCursor(0, 1);
+    lcd.print(attacks[modeSelected]->displayName());
+
     // This receives the message from the master side of the N2K network.
     if (mcp2515.readMessage(&recvMsg) == MCP2515::ERROR_OK)
     {
-        switch(modeSelected)
-        {
-            case 1:
-                pgnGetPos(&recvMsg);
-                break;
-
-            case 2:
-                pgnPosAlterNorth(&recvMsg);
-                break;
-
-            case 3:
-                pgnPosAlterSouth(&recvMsg);
-                break;
-
-            case 4:
-                pgnPosAlterEast(&recvMsg);
-                break;
-
-            case 5:
-                pgnPosAlterWest(&recvMsg);
-                break;
-
-            case 6:
-                pgnPosZigzag(&recvMsg);
-                break;
-
-            default:
-                pgnPrint(&recvMsg);
-        }
-
-        lcd.clear();
-        lcd.setCursor(0, 0);
-        lcd.print("Mode: ");
-        lcd.setCursor(0, 1);
-
-        switch (modeIdx)
-        {
-            case 1:
-                lcd.print("Getting Position");
-                break;
-
-            case 2:
-                lcd.print("Moving North");
-                break;
-
-            case 3:
-                lcd.print("Moving South");
-                break;
-
-            case 4:
-                lcd.print("Moving East");
-                break;
-
-            case 5:
-                lcd.print("Moving West");
-                break;
-
-            case 6:
-                lcd.print("Zig Zagging");
-                break;
-
-            default:
-                lcd.print("Printing Frames");
-        }
-
+        attacks[modeSelected]->pgnAttack(&recvMsg);
         /**
          * After were done altering the CAN frame, we let it through to the network
          * through the slave.
@@ -165,7 +119,7 @@ void buttonCheck(int buttonPin, bool* debounced, int* buttonState)
         if (buttonPin == buttonRightPin)
         {
             modeIdx++;
-            if (modeIdx > modeMax)
+            if (modeIdx >= modeMax)
             {
                modeIdx = 0;
             }
@@ -175,7 +129,7 @@ void buttonCheck(int buttonPin, bool* debounced, int* buttonState)
             modeIdx--;
             if (modeIdx < 0)
             {
-               modeIdx = modeMax;
+               modeIdx = modeMax - 1;
             }
         }
     }
@@ -212,4 +166,3 @@ void sendToSlave(struct can_frame msg)
     Wire.write("]");
     Wire.endTransmission();
 }
-  

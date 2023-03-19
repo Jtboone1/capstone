@@ -3,6 +3,117 @@
 float current_lat = 0.000000;
 float current_long = 0.000000;
 
+void PGN_Attack::pgnAttack(struct can_frame* recvMsg)
+{
+    return;
+}
+
+String PGN_AttackdisplayName() 
+{ 
+    return "Nothing";
+}
+
+void PGN_Print_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    pgnPrint(recvMsg);
+}
+
+String PGN_Print_Atk::displayName()
+{
+    return "Printing PGN";
+}
+
+void PGN_Aquire_Pos_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    if (isPositionPgn(recvMsg))
+    {   
+        /*
+         * We can alter the latitude and longitude relative to the REAL
+         * latitude and longitude by getting their values from the can  
+         * frame data into two floating points.
+         */
+        float coords[2];
+        getLatLong(recvMsg->data, &(coords[0]));
+        current_lat = coords[0];
+        current_long = coords[1];
+        pgnPrint(recvMsg);
+    }
+}
+
+String PGN_Aquire_Pos_Atk::displayName()
+{
+    return "Getting Coords";
+}
+
+void PGN_North_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'n');
+}
+
+String PGN_North_Atk::displayName()
+{
+    return "Moving North";
+}
+
+void PGN_East_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'e');
+}
+
+String PGN_East_Atk::displayName()
+{
+    return "Moving East";
+}
+
+void PGN_South_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 's');
+}
+
+String PGN_South_Atk::displayName()
+{
+    return "Moving South";
+}
+
+void PGN_West_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    pgnPosAlter(recvMsg, 'w');
+}
+
+String PGN_West_Atk::displayName()
+{
+    return "Moving West";
+}
+
+void PGN_Zig_Zag_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    if (isPositionPgn(recvMsg))
+    {   
+        current_lat += 0.100000;
+        current_long += 0.100000;
+
+        if (current_lat >= 89)
+        {
+            current_lat = -89;
+        }
+
+        if (current_long >= 179)
+        {
+            current_lat = -179;
+        }
+        
+        float coords[2] = {current_lat, current_long};
+         
+        getData(coords, recvMsg->data);
+        pgnPrint(recvMsg);
+    }
+}
+
+String PGN_Zig_Zag_Atk::displayName()
+{
+    return "Moving Zig Zag";
+}
+
 void pgnPrint(struct can_frame* recvMsg)
 {
     unsigned long PGN = recvMsg->can_id;
@@ -27,43 +138,6 @@ void pgnPrint(struct can_frame* recvMsg)
         Serial.print(" ");
     }
     Serial.println("\n");
-}
-
-void pgnGetPos(struct can_frame* recvMsg)
-{    
-    if (isPositionPgn(recvMsg))
-    {   
-        /*
-         * We can alter the latitude and longitude relative to the REAL
-         * latitude and longitude by getting their values from the can  
-         * frame data into two floating points.
-         */
-        float coords[2];
-        getLatLong(recvMsg->data, &(coords[0]));
-        current_lat = coords[0];
-        current_long = coords[1];
-        pgnPrint(recvMsg);
-    }
-}
-
-void pgnPosAlterNorth(struct can_frame* recvMsg)
-{
-    pgnPosAlter(recvMsg, 'n');
-}
-
-void pgnPosAlterSouth(struct can_frame* recvMsg)
-{
-    pgnPosAlter(recvMsg, 's');
-}
-
-void pgnPosAlterEast(struct can_frame* recvMsg)
-{
-    pgnPosAlter(recvMsg, 'e');
-}
-
-void pgnPosAlterWest(struct can_frame* recvMsg)
-{
-    pgnPosAlter(recvMsg, 'w');
 }
 
 void pgnPosAlter(struct can_frame* recvMsg, char dir)
@@ -96,30 +170,6 @@ void pgnPosAlter(struct can_frame* recvMsg, char dir)
         }   
         
         float coords[] = {current_lat, current_long};
-        getData(coords, recvMsg->data);
-        pgnPrint(recvMsg);
-    }
-}
-
-void pgnPosZigzag(struct can_frame* recvMsg)
-{
-    if (isPositionPgn(recvMsg))
-    {   
-        current_lat += 0.100000;
-        current_long += 0.100000;
-
-        if (current_lat >= 89)
-        {
-            current_lat = -89;
-        }
-
-        if (current_long >= 179)
-        {
-            current_lat = -179;
-        }
-        
-        float coords[2] = {current_lat, current_long};
-         
         getData(coords, recvMsg->data);
         pgnPrint(recvMsg);
     }

@@ -1,3 +1,6 @@
+#ifndef PGN_H
+#define PGN_H
+
 #include <SPI.h>
 #include <Wire.h>
 #include <mcp2515.h>
@@ -24,33 +27,86 @@
 extern float current_lat;
 extern float current_long;
 
+class PGN_Attack
+{
+    public:
+        virtual void pgnAttack(struct can_frame* recvMsg);
+        virtual String displayName();
+};
+
+class PGN_Print_Atk : public PGN_Attack
+{
+    public:
+        // Simply prints PGNs.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_Aquire_Pos_Atk : public PGN_Attack
+{
+    public:
+        // Stores the real GPS latitude and longitude into two variables (current_lat, current_long).
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_North_Atk : public PGN_Attack
+{
+    public:
+        // Alters current_lat and current_long coordinates to move north.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_East_Atk : public PGN_Attack
+{
+    public:
+        // Alters current_lat and current_long coordinates to move east.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_South_Atk : public PGN_Attack
+{
+    public:
+        // Alters current_lat and current_long coordinates to move south.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_West_Atk : public PGN_Attack
+{
+    public:
+        // Alters current_lat and current_long coordinates to move west.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
+class PGN_Zig_Zag_Atk : public PGN_Attack
+{
+    public:
+        // Alters current_lat and current_long coordinates to move in zig zag.
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
 /**
- * Functions for dealing with the various PGNs.
+ *  Helper functions used by multiple attacks.
  */
 
- // Prints PGN to the Arduino's Serial output.
+// Prints PGN to the Arduino's Serial output.
 void pgnPrint(struct can_frame* recvMsg);
-
-// Stores the real GPS latitude and longitude into two variables (current_lat, current_long).
-void pgnGetPos(struct can_frame* recvMsg);
 
 // Alters current_lat and current_long coordinates in the direction specified by dir (n,e,s,w).
 void pgnPosAlter(struct can_frame* recvMsg, char dir);
 
-void pgnPosAlterNorth(struct can_frame* recvMsg);
-void pgnPosAlterSouth(struct can_frame* recvMsg);
-void pgnPosAlterEast(struct can_frame* recvMsg);
-void pgnPosAlterWest(struct can_frame* recvMsg);
-
-// Alters the current_lat and current_long to go in a zig-zag pattern.
-void pgnPosZigzag(struct can_frame* recvMsg);
-
-/**
- *  Helper functions for altering the data in each frame.
- */
+// Returns True if PGN in the can_frame ID is equal to PGN_POSITION_RAPID.
+bool isPositionPgn(struct can_frame* recvMsg);
 
 // Given a frame's data, get the latitude and longitude as floating points.
 void getLatLong(uint8_t data[], float* coord);
 
 // Convert a coordinate structure into a N2K data array.
 void getData(float* lat_long, uint8_t* data);
+
+#endif
