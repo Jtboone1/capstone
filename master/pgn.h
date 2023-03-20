@@ -91,6 +91,27 @@ class PGN_Zig_Zag_Atk : public PGN_Attack
         String displayName();
 };
 
+class PGN_Small_Offset_Atk : public PGN_Attack
+{
+    public:
+
+        // We'll stay at one of three locations for however many "max_frames" we set here.
+        // Once we reach the max_frames, we'll move onto the next point.
+        int point = 0;
+        int max_frames = 3;
+        int current_frames = 0;
+        bool forward = true;
+        
+        const float lat1 = 49.446365;
+        const float lat2 = 48.076703;
+        const float long1 = -2.578878;
+        const float long2 = -4.385740;
+    
+        // Creates a small offset in the destination of the boat. 
+        void pgnAttack(struct can_frame* recvMsg);
+        String displayName();
+};
+
 /**
  *  Helper functions used by multiple attacks.
  */

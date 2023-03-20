@@ -10,7 +10,7 @@ void PGN_Print_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_Print_Atk::displayName()
 {
-    return "Printing PGN";
+    return "Printing PGN    ";
 }
 
 void PGN_Aquire_Pos_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -32,7 +32,7 @@ void PGN_Aquire_Pos_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_Aquire_Pos_Atk::displayName()
 {
-    return "Getting Coords";
+    return "Getting Coords  ";
 }
 
 void PGN_North_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -42,7 +42,7 @@ void PGN_North_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_North_Atk::displayName()
 {
-    return "Moving North";
+    return "Moving North    ";
 }
 
 void PGN_East_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -52,7 +52,7 @@ void PGN_East_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_East_Atk::displayName()
 {
-    return "Moving East";
+    return "Moving East     ";
 }
 
 void PGN_South_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -62,7 +62,7 @@ void PGN_South_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_South_Atk::displayName()
 {
-    return "Moving South";
+    return "Moving South    ";
 }
 
 void PGN_West_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -72,7 +72,7 @@ void PGN_West_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_West_Atk::displayName()
 {
-    return "Moving West";
+    return "Moving West     ";
 }
 
 void PGN_Zig_Zag_Atk::pgnAttack(struct can_frame* recvMsg)
@@ -101,7 +101,72 @@ void PGN_Zig_Zag_Atk::pgnAttack(struct can_frame* recvMsg)
 
 String PGN_Zig_Zag_Atk::displayName()
 {
-    return "Moving Zig Zag";
+    return "Moving Zig Zag  ";
+}
+
+void PGN_Small_Offset_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    if (this->point == 0)
+    {
+        if (this->current_frames >= this->max_frames)
+        {
+            this->point = 1;
+            this->current_frames = 0;
+        }
+        else
+        {
+            this->current_frames++;
+        }
+        
+        float coords[2] = {this->lat1, this->long1};
+        getData(coords, recvMsg->data);
+    }
+    else if (this->point == 1)
+    {
+        if (this->current_frames >= this->max_frames)
+        {
+            if (this->forward)
+            {
+                this->forward = false;
+                this->point = 2;
+            }
+            else
+            {
+                this->forward = true;
+                this->point = 0;
+            }
+            
+            this->current_frames = 0;
+        }
+        else
+        {
+            this->current_frames++;
+        }
+        
+        float coords[2] = {current_lat, current_long};
+        getData(coords, recvMsg->data);
+    }
+    else
+    {        
+        if (this->current_frames >= this->max_frames)
+        {
+            this->point = 1;
+            this->current_frames = 0;
+        }
+        else
+        {
+            this->current_frames++;
+        }
+        
+        float coords[2] = {this->lat2, this->long2};
+        getData(coords, recvMsg->data);
+        pgnPrint(recvMsg);
+    }
+}
+
+String PGN_Small_Offset_Atk::displayName()
+{
+    return "Small Offset Fr ";
 }
 
 void pgnPrint(struct can_frame* recvMsg)
@@ -142,7 +207,6 @@ void pgnPosAlter(struct can_frame* recvMsg, char dir)
          *  For this function, we will either move N,E,S,W depending on 
          *  the argument 'dir'.
          */
-
 
         switch (dir)
         {
