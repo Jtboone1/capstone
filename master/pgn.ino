@@ -104,64 +104,54 @@ String PGN_Zig_Zag_Atk::displayName()
     return "Moving Zig Zag  ";
 }
 
-void PGN_Small_Offset_Atk::pgnAttack(struct can_frame* recvMsg)
+void PGN_Small_Offset_Atk::checkCount()
 {
-    if (this->point == 0)
+    if (this->current_count < this->max_count)
     {
-        if (this->current_frames >= this->max_frames)
+        this->current_count++;
+        return;
+    }
+
+    this->current_count = 0;
+
+    if (this->point == 0 || this->point == 2)
+    {
+        this->point = 1;
+    }
+    else
+    {
+        if (this->forward)
         {
-            this->point = 1;
-            this->current_frames = 0;
+            this->forward = false;
+            this->point = 2;
         }
         else
         {
-            this->current_frames++;
+            this->forward = true;
+            this->point = 0;
         }
-        
+    }
+}
+
+void PGN_Small_Offset_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    this->checkCount();
+    if (this->point == 0)
+    {    
         float coords[2] = {this->lat1, this->long1};
         getData(coords, recvMsg->data);
     }
     else if (this->point == 1)
-    {
-        if (this->current_frames >= this->max_frames)
-        {
-            if (this->forward)
-            {
-                this->forward = false;
-                this->point = 2;
-            }
-            else
-            {
-                this->forward = true;
-                this->point = 0;
-            }
-            
-            this->current_frames = 0;
-        }
-        else
-        {
-            this->current_frames++;
-        }
-        
+    {   
         float coords[2] = {current_lat, current_long};
         getData(coords, recvMsg->data);
     }
     else
     {        
-        if (this->current_frames >= this->max_frames)
-        {
-            this->point = 1;
-            this->current_frames = 0;
-        }
-        else
-        {
-            this->current_frames++;
-        }
-        
         float coords[2] = {this->lat2, this->long2};
         getData(coords, recvMsg->data);
-        pgnPrint(recvMsg);
     }
+    pgnPrint(recvMsg);
 }
 
 String PGN_Small_Offset_Atk::displayName()
