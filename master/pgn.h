@@ -93,8 +93,8 @@ class PGN_Zig_Zag_Atk : public PGN_Attack
 
 class PGN_Small_Offset_Atk : public PGN_Attack
 {
-    public:
-
+    private:
+    
         // We'll stay at one of three locations for however many "max_frames" we set here.
         // Once we reach the max_frames, we'll move onto the next point.
         int point = 0;
@@ -108,43 +108,92 @@ class PGN_Small_Offset_Atk : public PGN_Attack
         const float long2 = -4.385740;
 
         void checkCount();
-    
+
+    public:
+        
         // Creates a small offset in the destination of the boat. 
         void pgnAttack(struct can_frame* recvMsg);
         String displayName();
 };
 
-class PGN_Capstone_Attack : public PGN_Attack
+class PGN_Capstone_Atk : public PGN_Attack
 {
-    public:
+    private:
         int point = 0;
-        int max_frames = 8;
-        int current_frames = 0;
-        bool forward = true;
+        int max_count = 8;
+        int current_count = 0;
 
-        // TODO Complete this thing
-        // 'C'
-        float point0[2] = {20, -45};
-        float point1[2] = {20, -65};
-        float point2[2] = {0, -65};
-        float point3[2] = {0, -47};
+        float max_h = 20.000000;
+        float half_h = 10.000000;
+        float min_h = 0.000000;
 
-        // 'A'
-        float point4[2] = {20, -47};
-        float point5[2] = {20, -37};
-        float point6[2] = {0, -37};
-        float point7[2] = {0, -47};
-        float point8[2] = {0, -34};
-
-        // 'P;
-        float point9[2] = {20, -34};
-        float pointA[2] = {20, -24};
-        float pointB[2] = {10, -24};
-
-        float a[2][2] = {{1,1},{2,2}};
-
+        float start = -170.000000;
+        float offset = 20.000000;
         
-    
+        float points[42][2] = {
+
+            // 'C'
+            {max_h, start},
+            {max_h, start - offset},
+            {min_h, start - offset},
+            {min_h, start},
+
+            // 'A'
+            {min_h, start + offset},
+            {max_h, start + offset},
+            {max_h, start + offset * 2},
+            {min_h, start + offset * 2},
+            {min_h, start + offset},
+            {min_h, start + offset * 2},
+
+            // 'P'
+            {min_h, start + offset * 3},
+            {max_h, start + offset * 3},
+            {max_h, start + offset * 4},
+            {half_h, start + offset * 4},
+            {half_h, start + offset * 3},
+            {min_h, start + offset * 3},
+
+            // 'S'
+            {min_h, start + offset * 6},
+            {half_h, start + offset * 6},
+            {half_h, start + offset * 5},
+            {max_h, start + offset * 5},
+            {max_h, start + offset * 6},
+
+            // 'T'
+            {max_h, start + offset * 8},
+            {max_h, start + offset * 7.5},
+            {min_h, start + offset * 7.5},
+            {max_h, start + offset * 7.5},
+
+            // 'O'
+            {max_h, start + offset * 10},
+            {max_h, start + offset * 9},
+            {min_h, start + offset * 9},
+            {min_h, start + offset * 10},
+            {max_h, start + offset * 10},
+
+            // 'N'
+            {max_h, start + offset * 11},
+            {min_h, start + offset * 11},
+            {max_h, start + offset * 11},
+            {min_h, start + offset * 12},
+            {max_h, start + offset * 12},
+
+            // 'E'
+            {max_h, start + offset * 14},
+            {max_h, start + offset * 13},
+            {half_h, start + offset * 13},
+            {half_h, start + offset * 14},
+            {half_h, start + offset * 13},
+            {min_h, start + offset * 13},
+            {min_h, start + offset * 13}
+        };
+
+        void checkCount();
+        
+        public:
         // Creates a small offset in the destination of the boat. 
         void pgnAttack(struct can_frame* recvMsg);
         String displayName();

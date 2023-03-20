@@ -11,7 +11,7 @@ struct can_frame sendMsg;
 const int rs = 9, en = 8, d4 = 7, d5 = 6, d6 = 5, d7 = 4;
 
 // Button Setup
-const int modeMax = 8;
+const int modeMax = 9;
 int modeIdx = 0;
 int modeSelected = 0;
 int buttonEnterState = 0;
@@ -34,10 +34,11 @@ PGN_East_Atk          east_a;
 PGN_South_Atk         south_a;
 PGN_West_Atk          west_a;
 PGN_Zig_Zag_Atk       zig_zag_a;
-PGN_Small_Offset_Atk  small_fr;
+PGN_Small_Offset_Atk  small_fr_a;
+PGN_Capstone_Atk      capstone_a;
 
 // Stores them in an array.
-PGN_Attack* attacks[modeMax] = {&print_a, &aquire_a, &north_a, &east_a, &south_a, &west_a, &zig_zag_a, &small_fr};
+PGN_Attack* attacks[modeMax] = {&print_a, &aquire_a, &north_a, &east_a, &south_a, &west_a, &zig_zag_a, &small_fr_a, &capstone_a};
 
 MCP2515 mcp2515(10);
 LiquidCrystal lcd(rs, en, d4, d5, d6, d7);

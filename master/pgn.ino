@@ -159,6 +159,34 @@ String PGN_Small_Offset_Atk::displayName()
     return "Small Offset Fr ";
 }
 
+void PGN_Capstone_Atk::checkCount()
+{
+    if (this->current_count < this->max_count)
+    {
+        this->current_count++;
+        return;
+    }
+
+    this->current_count = 0;
+
+    if (this->point < 42)
+    {
+        this->point++;
+    }
+}
+
+void PGN_Capstone_Atk::pgnAttack(struct can_frame* recvMsg)
+{
+    this->checkCount();
+    float coords[2] = {this->points[this->point][0], this->points[this->point][1]};
+    getData(coords, recvMsg->data);   
+}
+
+String PGN_Capstone_Atk::displayName()
+{
+    return "Capstone        ";
+}
+
 void pgnPrint(struct can_frame* recvMsg)
 {
     unsigned long PGN = recvMsg->can_id;
