@@ -118,14 +118,32 @@ class PGN_Capstone_Attack : public PGN_Attack
 {
     public:
         int point = 0;
-        int max_frames = 3;
+        int max_frames = 8;
         int current_frames = 0;
         bool forward = true;
+
+        // TODO Complete this thing
+        // 'C'
+        float point0[2] = {20, -45};
+        float point1[2] = {20, -65};
+        float point2[2] = {0, -65};
+        float point3[2] = {0, -47};
+
+        // 'A'
+        float point4[2] = {20, -47};
+        float point5[2] = {20, -37};
+        float point6[2] = {0, -37};
+        float point7[2] = {0, -47};
+        float point8[2] = {0, -34};
+
+        // 'P;
+        float point9[2] = {20, -34};
+        float pointA[2] = {20, -24};
+        float pointB[2] = {10, -24};
+
+        float a[2][2] = {{1,1},{2,2}};
+
         
-        const float lat1 = 49.446365;
-        const float lat2 = 48.076703;
-        const float long1 = -2.578878;
-        const float long2 = -4.385740;
     
         // Creates a small offset in the destination of the boat. 
         void pgnAttack(struct can_frame* recvMsg);
